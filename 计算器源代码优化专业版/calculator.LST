@@ -1,0 +1,839 @@
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE CALCULATOR
+OBJECT MODULE PLACED IN calculator.OBJ
+COMPILER INVOKED BY: D:\单片机\C51\BIN\C51.EXE calculator.c OMF2 BROWSE DEBUG
+
+line level    source
+
+   1          /*
+   2          **********************************************************************************************************
+             -***
+   3          * 日期；2016.1.9                              
+   4          * 文件名：calculator.c
+   5          * 描  述：键盘及lcd的调用函数
+   6          * 版本号：1.1.0
+   7          * 备  注：通用性不足，编码过多，有待优化，算法复杂
+   8          **********************************************************************************************************
+             -***
+   9          */
+  10          
+  11          #define  _CALCULATOR_C
+  12          #include "calculdefine.h"
+  13          #include "calculator.h"
+  14          
+  15          
+  16          
+  17          
+  18          void delayms(uint xms)                          
+  19          {
+  20   1              uint i,j;
+  21   1              for(i=xms;i>0;i--)                    //i=xms即延时约xms毫秒
+  22   1                      for(j=110;j>0;j--);
+  23   1      }
+  24          
+  25          
+  26          void off_shumaguan()
+  27          {       
+  28   1              du=1;
+  29   1              P0=0x00; // 关闭数码管
+  30   1              du=0;
+  31   1      }
+  32           /*------------------------------------------------
+  33                        初始化函数
+  34          ------------------------------------------------*/
+  35          void LCD_Init() 
+  36          {       
+  37   1              Write_Com(0x01);          /*清屏*/
+  38   1              Write_Com(0x38);    /*显示模式设置*/ 
+  39   1              Write_Com(0x0F);    /*显示光标移动设置*/ 
+  40   1              Write_Com(0x06); 
+  41   1                
+  42   1      }
+  43          /*------------------------------------------------
+  44                        写入命令函数
+  45          ------------------------------------------------*/
+  46          void Write_Com(uchar com) 
+  47          {  
+  48   1               RS_CLR; 
+  49   1               RW_CLR; 
+  50   1               EN_SET; 
+  51   1               delayms(5);
+  52   1               DataPort=com;
+  53   1               delayms(5);
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 2   
+
+  54   1               EN_CLR;
+  55   1      }
+  56          /*------------------------------------------------
+  57                        写入数据函数
+  58          ------------------------------------------------*/
+  59           void LCD_Write_Data(uchar Data) 
+  60           { 
+  61   1       //while(LCD_Check_Busy()); //忙则等待
+  62   1       //delayms(5);
+  63   1       RS_SET; 
+  64   1       RW_CLR; 
+  65   1       EN_SET; 
+  66   1       delayms(5);
+  67   1       DataPort= Data; 
+  68   1       //_nop_()
+  69   1       delayms(5);
+  70   1       EN_CLR;
+  71   1       }
+  72          /*------------------------------------------------
+  73                       键盘
+  74          ------------------------------------------------*/
+  75          void matrixkeyscan()
+  76          {
+  77   1              uchar temp,key;
+  78   1              int h = 0,g;
+  79   1      
+  80   1          P3=0xfe;   //1111 1110
+  81   1          temp=P3;
+  82   1          temp=temp&0xf0;
+  83   1          if(temp!=0xf0)
+  84   1          {
+  85   2            delayms(10);
+  86   2                temp=P3;
+  87   2                temp=temp&0xf0;
+  88   2            if(temp!=0xf0)
+  89   2            {
+  90   3              temp=P3;
+  91   3              switch(temp)
+  92   3              {
+  93   4                case 0xee:     //11101110
+  94   4                     key=0;
+  95   4                     break;
+  96   4                case 0xde:    //11011110
+  97   4                     key=1;
+  98   4                     break;
+  99   4                case 0xbe:
+ 100   4                     key=2;
+ 101   4                     break;
+ 102   4                case 0x7e:
+ 103   4                     key=3;
+ 104   4                     break;
+ 105   4               }
+ 106   3               while(temp!=0xf0)
+ 107   3               {
+ 108   4                 temp=P3;
+ 109   4                 temp=temp&0xf0;
+ 110   4               } 
+ 111   3                      LCD_Write_Data(table[key]);
+ 112   3              if(key == 3)
+ 113   3                      {
+ 114   4              
+ 115   4                              calculator(0x2F);
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 3   
+
+ 116   4                      }
+ 117   3                      else
+ 118   3                              jishu(table1[key]);
+ 119   3            }
+ 120   2          }
+ 121   1          P3=0xfd;
+ 122   1          temp=P3;
+ 123   1          temp=temp&0xf0;
+ 124   1          if(temp!=0xf0)
+ 125   1          {
+ 126   2            delayms(10);
+ 127   2            temp=P3;
+ 128   2            temp=temp&0xf0;
+ 129   2            if(temp!=0xf0)
+ 130   2            {
+ 131   3              temp=P3;
+ 132   3              switch(temp)
+ 133   3              {
+ 134   4                case 0xed:
+ 135   4                     key=4;
+ 136   4                     break;
+ 137   4                case 0xdd:
+ 138   4                     key=5;
+ 139   4                     break;
+ 140   4                case 0xbd:
+ 141   4                     key=6;
+ 142   4                     break;
+ 143   4                case 0x7d:
+ 144   4                     key=7;
+ 145   4                     break;
+ 146   4               }
+ 147   3               while(temp!=0xf0)
+ 148   3               {
+ 149   4                 temp=P3;
+ 150   4                 temp=temp&0xf0;
+ 151   4               }
+ 152   3                      LCD_Write_Data(table[key]);
+ 153   3              if(key == 7)
+ 154   3                      {       
+ 155   4              
+ 156   4                              calculator(0x2A);
+ 157   4                      }
+ 158   3                      else
+ 159   3                              jishu(table1[key]);
+ 160   3            }
+ 161   2            }
+ 162   1          P3=0xfb;
+ 163   1          temp=P3;
+ 164   1          temp=temp&0xf0;
+ 165   1          if(temp!=0xf0)
+ 166   1          {
+ 167   2            delayms(10);
+ 168   2                temp=P3;
+ 169   2            temp=temp&0xf0;
+ 170   2            if(temp!=0xf0)
+ 171   2            {
+ 172   3              temp=P3;
+ 173   3              switch(temp)
+ 174   3              {
+ 175   4                case 0xeb:
+ 176   4                     key=8;
+ 177   4                     break;
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 4   
+
+ 178   4                case 0xdb:
+ 179   4                     key=9;
+ 180   4                     break;
+ 181   4                case 0xbb:
+ 182   4                     key=10;
+ 183   4                     break;
+ 184   4                case 0x7b:
+ 185   4                     key=11;
+ 186   4                     break;
+ 187   4               }
+ 188   3               while(temp!=0xf0)
+ 189   3               {
+ 190   4                 temp=P3;
+ 191   4                 temp=temp&0xf0;
+ 192   4               }
+ 193   3              LCD_Write_Data(table[key]);
+ 194   3                      if(key == 11)
+ 195   3                      {
+ 196   4                              
+ 197   4                              calculator(0x2D);
+ 198   4                      }
+ 199   3                      else
+ 200   3                              jishu(table1[key]);
+ 201   3            }
+ 202   2            }
+ 203   1          P3=0xf7;
+ 204   1          temp=P3;
+ 205   1          temp=temp&0xf0;
+ 206   1          if(temp!=0xf0)
+ 207   1          {
+ 208   2            delayms(10);
+ 209   2            temp=P3;
+ 210   2            temp=temp&0xf0;
+ 211   2            if(temp!=0xf0)
+ 212   2            {
+ 213   3              temp=P3;
+ 214   3              switch(temp)
+ 215   3              {
+ 216   4                case 0xe7:
+ 217   4                     key=12;
+ 218   4                     break;
+ 219   4                case 0xd7:
+ 220   4                     key=13;
+ 221   4                     break;
+ 222   4                case 0xb7:
+ 223   4                     key=14;
+ 224   4                     break;
+ 225   4                case 0x77:
+ 226   4                     key=15;
+ 227   4                     break;
+ 228   4               }
+ 229   3                       while((temp==0xb7)&&(h <= 31))
+ 230   3               {
+ 231   4                 temp=P3;  
+ 232   4                         delayms(60);
+ 233   4                              h++;
+ 234   4               }
+ 235   3                       if(temp!=0xb7)                                            
+ 236   3                       {
+ 237   4                                      while(temp!=0xf0)
+ 238   4                       {
+ 239   5                         temp=P3;
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 5   
+
+ 240   5                         temp=temp&0xf0;
+ 241   5                       }
+ 242   4                       }
+ 243   3                      
+ 244   3                       if(h>=30)
+ 245   3                       {
+ 246   4                              key = 88;
+ 247   4                              EEPROM_write();
+ 248   4                              for(g = 0;g < 4;g++)
+ 249   4                                      LCD_Write_Data(save[g]);
+ 250   4                              delayms(800);
+ 251   4                              Write_Com(0x80);                        
+ 252   4                              for(g = 0;g < 17;g++)
+ 253   4                              LCD_Write_Data(0x20);
+ 254   4                              Write_Com(0x80);
+ 255   4                              delayms(800);  //提供时间放手，否则会再次输入等号。
+ 256   4                       }
+ 257   3                       
+ 258   3                      if(key == 15 || key == 13)
+ 259   3                      {
+ 260   4                              LCD_Write_Data(table[key]);
+ 261   4                      if(key == 15)
+ 262   4                              {
+ 263   5                              
+ 264   5                                      calculator(0x2B);
+ 265   5                              }
+ 266   4                              if(key == 13)
+ 267   4                                      jishu(0);
+ 268   4                      }
+ 269   3                      if(key == 12)
+ 270   3                              guiling();
+ 271   3                }
+ 272   2          }
+ 273   1      }
+ 274          void matrixkeyscan2(uchar ch)
+ 275          {
+ 276   1              uchar temp,key;
+ 277   1              int h = 0,g, j = 0;
+ 278   1          P3=0xfe;   //1111 1110
+ 279   1          temp=P3;
+ 280   1          temp=temp&0xf0;
+ 281   1          if(temp!=0xf0)
+ 282   1          {
+ 283   2            delayms(10);
+ 284   2                temp=P3;
+ 285   2                temp=temp&0xf0;
+ 286   2            if(temp!=0xf0)
+ 287   2            {
+ 288   3              temp=P3;
+ 289   3              switch(temp)
+ 290   3              {
+ 291   4                case 0xee:     //11101110
+ 292   4                     key=0;
+ 293   4                     break;
+ 294   4                case 0xde:    //11011110
+ 295   4                     key=1;
+ 296   4                     break;
+ 297   4                case 0xbe:
+ 298   4                     key=2;
+ 299   4                     break;
+ 300   4                case 0x7e:
+ 301   4                     key=3;
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 6   
+
+ 302   4                     break;
+ 303   4               }
+ 304   3               while(temp!=0xf0)
+ 305   3               {
+ 306   4                 temp=P3;
+ 307   4                 temp=temp&0xf0;
+ 308   4               }
+ 309   3                      LCD_Write_Data(table[key]);
+ 310   3              if(key == 3)
+ 311   3                      {       
+ 312   4                              calculator2(ch);
+ 313   4                              calculator(0x2F);
+ 314   4                      }
+ 315   3                      else
+ 316   3                              jishu2(table1[key]);
+ 317   3            }
+ 318   2          }
+ 319   1          P3=0xfd;
+ 320   1          temp=P3;
+ 321   1          temp=temp&0xf0;
+ 322   1          if(temp!=0xf0)
+ 323   1          {
+ 324   2            delayms(10);
+ 325   2            temp=P3;
+ 326   2            temp=temp&0xf0;
+ 327   2            if(temp!=0xf0)
+ 328   2            {
+ 329   3              temp=P3;
+ 330   3              switch(temp)
+ 331   3              {
+ 332   4                case 0xed:
+ 333   4                     key=4;
+ 334   4                     break;
+ 335   4                case 0xdd:
+ 336   4                     key=5;
+ 337   4                     break;
+ 338   4                case 0xbd:
+ 339   4                     key=6;
+ 340   4                     break;
+ 341   4                case 0x7d:
+ 342   4                     key=7;
+ 343   4                     break;
+ 344   4               }
+ 345   3               while(temp!=0xf0)
+ 346   3               {
+ 347   4                 temp=P3;
+ 348   4                 temp=temp&0xf0;
+ 349   4               }
+ 350   3                 LCD_Write_Data(table[key]);
+ 351   3             if(key == 7)
+ 352   3                      {
+ 353   4                              calculator2(ch);
+ 354   4                              calculator(0x2A);
+ 355   4                      }
+ 356   3                      else
+ 357   3                              jishu2(table1[key]);
+ 358   3            }
+ 359   2            }
+ 360   1          P3=0xfb;
+ 361   1          temp=P3;
+ 362   1          temp=temp&0xf0;
+ 363   1          if(temp!=0xf0)
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 7   
+
+ 364   1          {
+ 365   2            delayms(10);
+ 366   2                temp=P3;
+ 367   2            temp=temp&0xf0;
+ 368   2            if(temp!=0xf0)
+ 369   2            {
+ 370   3              temp=P3;
+ 371   3              switch(temp)
+ 372   3              {
+ 373   4                case 0xeb:
+ 374   4                     key=8;
+ 375   4                     break;
+ 376   4                case 0xdb:
+ 377   4                     key=9;
+ 378   4                     break;
+ 379   4                case 0xbb:
+ 380   4                     key=10;
+ 381   4                     break;
+ 382   4                case 0x7b:
+ 383   4                     key=11;
+ 384   4                     break;
+ 385   4               }
+ 386   3               while(temp!=0xf0)
+ 387   3               {
+ 388   4                 temp=P3;
+ 389   4                 temp=temp&0xf0;
+ 390   4               }
+ 391   3                       LCD_Write_Data(table[key]);
+ 392   3              if(key == 11)
+ 393   3                      {
+ 394   4                              calculator2(ch);
+ 395   4                              calculator(0x2D);               
+ 396   4                      }
+ 397   3                      else
+ 398   3                              jishu2(table1[key]);
+ 399   3            }
+ 400   2            }
+ 401   1          P3=0xf7;
+ 402   1          temp=P3;
+ 403   1          temp=temp&0xf0;
+ 404   1          if(temp!=0xf0)
+ 405   1          {
+ 406   2            delayms(10);
+ 407   2            temp=P3;
+ 408   2            temp=temp&0xf0;
+ 409   2            if(temp!=0xf0)
+ 410   2            {
+ 411   3              temp=P3;
+ 412   3              switch(temp)
+ 413   3              {
+ 414   4                case 0xe7:
+ 415   4                     key=12;
+ 416   4                     break;
+ 417   4                case 0xd7:
+ 418   4                     key=13;
+ 419   4                     break;
+ 420   4                case 0xb7:
+ 421   4                     key=14;
+ 422   4                     break;
+ 423   4                case 0x77:
+ 424   4                     key=15;
+ 425   4                     break;
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 8   
+
+ 426   4               }
+ 427   3              
+ 428   3                       while((temp==0xb7)&&(h <= 31))
+ 429   3               {
+ 430   4                 temp=P3;  
+ 431   4                         delayms(60);  //经测试，比较接近3秒
+ 432   4                              h++;
+ 433   4               }
+ 434   3                       while((temp==0x77)&&(j <= 31))
+ 435   3               {
+ 436   4                 temp=P3;  
+ 437   4                         delayms(60);  //经测试，比较接近3秒
+ 438   4                              j++;
+ 439   4               }
+ 440   3                       if((temp!=0xb7)&&(temp!=0x77))                                            
+ 441   3                                      while(temp!=0xf0)
+ 442   3                       {
+ 443   4                         temp=P3;
+ 444   4                         temp=temp&0xf0;
+ 445   4                       }
+ 446   3                      
+ 447   3                       if(h>=30)
+ 448   3                       {
+ 449   4                              EEPROM_write();
+ 450   4                              for(g = 0;g < 4;g++)
+ 451   4                                      LCD_Write_Data(save[g]);
+ 452   4                              delayms(800);  //提供时间放手，否则会再次输入等号。     
+ 453   4                              key = 16;          
+ 454   4                       } 
+ 455   3                       if(j>=30)
+ 456   3                       {
+ 457   4                              EEPROM_read2();
+ 458   4                              for(g = 0;g < 4;g++)
+ 459   4                                      LCD_Write_Data(read[g]);
+ 460   4                              delayms(800);  //提供时间放手，否则会再次输入等号。               
+ 461   4                              key = 14;
+ 462   4                       } 
+ 463   3                      LCD_Write_Data(table[key]);
+ 464   3                      delayms(500);
+ 465   3                      if(key == 15)
+ 466   3                      {
+ 467   4                              calculator2(ch);
+ 468   4                              calculator(0x2B);
+ 469   4                      }
+ 470   3                      if(key == 13)
+ 471   3                              jishu2(0);
+ 472   3                      if(key == 14)
+ 473   3                      {       
+ 474   4                              calculator2(ch);
+ 475   4                              calculator(0x3D);
+ 476   4                      }
+ 477   3                      if(key == 12)
+ 478   3                              guiling();
+ 479   3            }
+ 480   2          }
+ 481   1      }
+ 482          /*------------------------------------------------
+ 483                       计算功能
+ 484          ------------------------------------------------*/
+ 485          void calculator(uchar ch)
+ 486          {
+ 487   1              *pa = 0;
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 9   
+
+ 488   1              if(ch==0x2B)    
+ 489   1                      while(1)
+ 490   1                      {
+ 491   2                              matrixkeyscan2(0x2B);//不停调用键盘扫描程序
+ 492   2                      }
+ 493   1              if(ch==0x2D)
+ 494   1                      while(1)
+ 495   1                      {
+ 496   2                              matrixkeyscan2(0x2D);//不停调用键盘扫描程序
+ 497   2                      }       
+ 498   1              if(ch==0x2A)
+ 499   1                      while(1)
+ 500   1                      {
+ 501   2                              matrixkeyscan2(0x2A);//不停调用键盘扫描程序
+ 502   2                      }
+ 503   1              if(ch==0x2F)
+ 504   1                      while(1)
+ 505   1                      {
+ 506   2                              matrixkeyscan2(0x2F);//不停调用键盘扫描程序
+ 507   2                      }
+ 508   1              if(ch==0x3D)
+ 509   1              {  
+ 510   2                      
+ 511   2              //      float a, b, temp = *psum;
+ 512   2                      long uint c, temp = *psum;
+ 513   2                      //LCD_Write_Data(table0[1]);
+ 514   2                      int i = 0;              
+ 515   2                      Write_Com(0x01);
+ 516   2                      Write_Com(0x80+0x40); 
+ 517   2                      for(c = 0;temp >= 1;)
+ 518   2                      {       
+ 519   3                              c = temp%10;
+ 520   3                              temp = temp/10; 
+ 521   3                              i++;
+ 522   3                              table2[i] = c;
+ 523   3                      
+ 524   3                      }
+ 525   2                      //      LCD_Write_Data(table0[*pi]);
+ 526   2                
+ 527   2                              for(;i > 0;--i)
+ 528   2                                      LCD_Write_Data(table0[table2[i]]);
+ 529   2                              i = 0;
+ 530   2                      /*Write_Com(0x80);                        以下4行指令，清液晶屏第一行
+ 531   2                      for(b = 0;b < 17;b++)
+ 532   2                      LCD_Write_Data(0x20);
+ 533   2                      Write_Com(0x80);*/
+ 534   2              /*for(a=1.0,b = 0;a < 1.0;a = (temp/10),++b);
+ 535   2                      for(c = 0;b == 0;--b)
+ 536   2                      {
+ 537   2                              c = (int)(temp1 /= pow(10,b));  
+ 538   2                              temp1 = temp1 - c * pow(10,b);
+ 539   2                              
+ 540   2                      }                                        */     
+ 541   2                      Write_Com(0x80);
+ 542   2                      //SBUF=*psum;
+ 543   2                      while(1)                         //使得输入等号只后能继续运算。
+ 544   2                      {
+ 545   3                              matrixkeyscan2();//不停调用键盘扫描程序
+*** WARNING C209 IN LINE 545 OF CALCULATOR.C: '_matrixkeyscan2': too few actual parameters
+ 546   3                      }
+ 547   2              }
+ 548   1                      
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 10  
+
+ 549   1      }
+ 550          
+ 551          void calculator2(uchar ch)
+ 552          {
+ 553   1              int d = 0,b;
+ 554   1              *pa = 0;
+ 555   1              {
+ 556   2                      if(ch == 0x2F)
+ 557   2                      {       
+ 558   3                              d = (*psum) % (*psum2);
+ 559   3                              (*psum) = (*psum) / (*psum2);
+ 560   3                                                              
+ 561   3                      }
+ 562   2                      if(ch == 0x2A)
+ 563   2                              {(*psum) = (*psum) * (*psum2);}
+ 564   2                      if(ch == 0x2D)
+ 565   2                              (*psum) = (*psum) - (*psum2);
+ 566   2                      if(ch == 0x2B)
+ 567   2                              (*psum) = (*psum) + (*psum2);
+ 568   2              }
+ 569   1              if(*psum < 0 || (d != 0))
+ 570   1              {
+ 571   2                      for(b = 0;b < 5;b++)
+ 572   2                      LCD_Write_Data(error[b]);
+ 573   2                      delayms(500);
+ 574   2                      guiling();
+ 575   2              }
+ 576   1              *psum2 =0; 
+ 577   1      }
+ 578          
+ 579          void jishu(int ch)
+ 580          {               
+ 581   1              if(*pa >= 1)
+ 582   1                      (*psum) = 10 * (*psum); 
+ 583   1              (*psum) += ch;
+ 584   1              (*pa)++;
+ 585   1      
+ 586   1      }
+ 587          void jishu2(int ch)
+ 588          {
+ 589   1              if(*pa >= 1)
+ 590   1                      *psum2 = 10 * (*psum2);
+ 591   1              (*psum2) += ch;
+ 592   1              (*pa)++;
+ 593   1      
+ 594   1      }
+ 595          void guiling()
+ 596          {
+ 597   1              *psum = 0;
+ 598   1              *psum2 = 0;
+ 599   1              LCD_Init();
+ 600   1              Write_Com(0x80); 
+ 601   1          while(1)
+ 602   1              {
+ 603   2                      matrixkeyscan();
+ 604   2              }
+ 605   1      }
+ 606          
+ 607          
+ 608          
+ 609          /***************************************************
+ 610          函数功能：开始数据传送
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 11  
+
+ 611          ***************************************************/
+ 612          void start()
+ 613          // 开始位
+ 614          {
+ 615   1              SDA = 1;    //SDA初始化为高电平“1”
+ 616   1         SCL = 1;    //开始数据传送时，要求SCL为高电平“1”
+ 617   1              _nop_();    //等待一个机器周期
+ 618   1              _nop_();    //等待一个机器周期
+ 619   1              _nop_();    //等待一个机器周期
+ 620   1              _nop_();    //等待一个机器周期
+ 621   1              SDA = 0;    //SDA的下降沿被认为是开始信号
+ 622   1              _nop_();    //等待一个机器周期
+ 623   1              _nop_();    //等待一个机器周期
+ 624   1              _nop_();    //等待一个机器周期
+ 625   1              _nop_();    //等待一个机器周期
+ 626   1              SCL = 0;    //SCL为低电平时，SDA上数据才允许变化(即允许以后的数据传递）  
+ 627   1      }
+ 628          /***************************************************
+ 629          函数功能：结束数据传送
+ 630          ***************************************************/
+ 631          void stop()
+ 632          // 停止位
+ 633          {
+ 634   1              SDA = 0;     //SDA初始化为低电平“0”   _n
+ 635   1              SCL = 1;     //结束数据传送时，要求SCL为高电平“1”
+ 636   1              _nop_();     //等待一个机器周期
+ 637   1              _nop_();     //等待一个机器周期
+ 638   1              _nop_();     //等待一个机器周期
+ 639   1              _nop_();     //等待一个机器周期
+ 640   1              SDA = 1;    //SDA的上升沿被认为是结束信号
+ 641   1              _nop_();     //等待一个机器周期
+ 642   1              _nop_();     //等待一个机器周期
+ 643   1              _nop_();     //等待一个机器周期
+ 644   1              _nop_();     //等待一个机器周期
+ 645   1              SDA=0;
+ 646   1              SCL=0;
+ 647   1      }
+ 648          /***************************************************
+ 649          函数功能：从AT24Cxx读取数据
+ 650          出口参数：x
+ 651          ***************************************************/
+ 652          unsigned char ReadData()
+ 653          // 从AT24Cxx移入数据到MCU
+ 654          {
+ 655   1              unsigned char h;
+ 656   1              unsigned char x;   //储存从AT24Cxx中读出的数据
+ 657   1              for(h = 0; h < 8; h++)
+ 658   1              {
+ 659   2                      SCL = 1;                //SCL置为高电平
+ 660   2                      x<<=1;                  //将x中的各二进位向左移一位
+ 661   2                      x|=(unsigned char)SDA;  //将SDA上的数据通过按位“或“运算存入x中
+ 662   2                      SCL = 0;                        //在SCL的下降沿读出数据
+ 663   2              }
+ 664   1              return(x);                //将读取的数据返回
+ 665   1      }
+ 666          /***************************************************
+ 667          函数功能：向AT24Cxx的当前地址写入数据
+ 668          入口参数：y (储存待写入的数据）
+ 669          ***************************************************/
+ 670          //在调用此数据写入函数前需首先调用开始函数start(),所以SCL=0
+ 671          bit WriteCurrent(unsigned char y)
+ 672          {
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 12  
+
+ 673   1              unsigned char h;
+ 674   1              bit ack_bit;               //储存应答位
+ 675   1              for(h = 0; h < 8; h++)          // 循环移入8个位
+ 676   1              {
+ 677   2              SDA = (bit)(y&0x80);   //通过按位“与”运算将最高位数据送到S
+ 678   2                                                        //因为传送时高位在前，低位在后
+ 679   2                      _nop_();            //等待一个机器周期   
+ 680   2                 SCL = 1;            //在SCL的上升沿将数据写入AT24Cxx      
+ 681   2              _nop_();            //等待一个机器周期 
+ 682   2                _nop_();             //等待一个机器周期       
+ 683   2                      
+ 684   2                      SCL = 0;            //将SCL重新置为低电平，以在SCＬ线形成传送数据所需的８个脉冲
+ 685   2                      y <<= 1;           //将y中的各二进位向左移一位
+ 686   2              }
+ 687   1              SDA = 1;                          // 发送设备（主机）应在时钟脉冲的高电平期间(SCL=1)释放SDA线，
+ 688   1                              //以让SDA线转由接收设备(AT24Cxx)控制
+ 689   1              _nop_();        //等待一个机器周期 
+ 690   1              _nop_();        //等待一个机器周期 
+ 691   1              SCL = 1;       //根据上述规定，SCL应为高电平
+ 692   1              _nop_();       //等待一个机器周期 
+ 693   1              _nop_();       //等待一个机器周期 
+ 694   1              _nop_();       //等待一个机器周期 
+ 695   1              _nop_();       //等待一个机器周期 
+ 696   1              ack_bit = SDA; //接受设备（AT24Cxx)向SDA送低电平，表示已经接收到一个字节
+ 697   1                             //若送高电平，表示没有接收到，传送异常
+ 698   1              SCL = 0;       //SCL为低电平时，SDA上数据才允许变化(即允许以后的数据传递）
+ 699   1              return  ack_bit;                        // 返回AT24Cxx应答位
+ 700   1      }
+ 701          /***************************************************
+ 702          函数功能：向AT24Cxx中的指定地址写入数据
+ 703          入口参数：add (储存指定的地址）；dat(储存待写入的数据）
+ 704          ***************************************************/
+ 705          void WriteSet(unsigned char add, unsigned char dat)
+ 706          // 在指定地址addr处写入数据WriteCurrent
+ 707          {
+ 708   1              start();               //开始数据传递
+ 709   1              WriteCurrent(OP_WRITE);  //选择要操作的AT24Cxx芯片，并告知要对其写入数据
+ 710   1              WriteCurrent(add);       //写入指定地址
+ 711   1              WriteCurrent(dat);       //向当前地址（上面指定的地址）写入数据
+ 712   1              stop();                //停止数据传递
+ 713   1              delayms(4);            //1个字节的写入周期为1ms, 最好延时1ms以上
+ 714   1      }
+ 715          /***************************************************
+ 716          函数功能：从AT24Cxx中的当前地址读取数据
+ 717          出口参数：x (储存读出的数据） 
+ 718          ***************************************************/
+ 719          unsigned char ReadCurrent()
+ 720          {
+ 721   1              unsigned char x;
+ 722   1              start();               //开始数据传递
+ 723   1              WriteCurrent(OP_READ);   //选择要操作的AT24Cxx芯片，并告知要读其数据
+ 724   1              x=ReadData();         //将读取的数据存入x
+ 725   1              stop();                //停止数据传递
+ 726   1              return x;              //返回读取的数据
+ 727   1      }
+ 728          /***************************************************
+ 729          函数功能：从AT24Cxx中的指定地址读取数据
+ 730          入口参数：set_addr
+ 731          出口参数：x 
+ 732          ***************************************************/
+ 733          unsigned char ReadSet(unsigned char set_addr)
+ 734          // 在指定地址读取
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 13  
+
+ 735          {
+ 736   1              start();                      //开始数据传递
+ 737   1              WriteCurrent(OP_WRITE);       //选择要操作的AT24Cxx芯片，并告知要对其写入数据
+ 738   1              WriteCurrent(set_addr);       //写入指定地址
+ 739   1              return(ReadCurrent());        //从指定地址读出数据并返回
+ 740   1      }
+ 741          /***************************************************
+ 742          函数功能：主函数
+ 743          ***************************************************/
+ 744          void EEPROM_write()
+ 745          {
+ 746   1              int c, i=0;
+ 747   1              long uint temp = *psum;
+ 748   1              while(temp >= 1)
+ 749   1              {       
+ 750   2                      temp = temp/10; 
+ 751   2                      i++;
+ 752   2              }
+ 753   1              *pi = i + 1;
+ 754   1              SDA = 1;           // SDA=1,SCL=1,使主从设备处于空闲状态
+ 755   1              SCL = 1;
+ 756   1               temp = *psum;
+ 757   1              WriteSet(88,*pi);
+ 758   1              for(;i >= 1;i--)
+ 759   1              {       
+ 760   2                      c = temp%10;
+ 761   2                      temp = temp/10; 
+ 762   2                      WriteSet(i,c);
+ 763   2                      
+ 764   2              }
+ 765   1              
+ 766   1      }
+ 767          
+ 768          void EEPROM_read2()
+ 769          {
+ 770   1          int c = 0, h;
+ 771   1                      //LCD_Write_Data(table0[1]);
+ 772   1              SDA = 1;           // SDA=1,SCL=1,使主从设备处于空闲状态
+ 773   1              SCL = 1;
+ 774   1              *pi = ReadSet(88);
+ 775   1              c = ReadSet(1); 
+ 776   1              for(h = 2;h<=*pi;h++)
+ 777   1              {                       
+ 778   2                      LCD_Write_Data(table0[c]);
+ 779   2                      jishu2(c);
+ 780   2                      c = ReadSet(h);
+ 781   2                      
+ 782   2              }
+ 783   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2803    ----
+   CONSTANT SIZE    =     59    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     34      47
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+C51 COMPILER V9.01   CALCULATOR                                                            03/01/2016 20:25:54 PAGE 14  
+
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
